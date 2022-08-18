@@ -1,4 +1,4 @@
-function setupIHMTsimPaths
+function baseDir = setupIHMTsimPaths
 
 % Edit this function to contain the paths of your folders:
 
