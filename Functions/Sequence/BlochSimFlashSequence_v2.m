@@ -245,7 +245,7 @@ for i = 1:loops
                     
                     if Params.CalcVector == 1 
                         M(:,idx) = mean(M_t,2); 
-                        time_vect(idx) = time_vect(idx-1) +  Params.pulseDur;
+                        time_vect(idx) = time_vect(idx-1) +  Params.pulseDur/PulseDur;
                         idx = idx +1;
                     end % For viewing; 
                 end    
