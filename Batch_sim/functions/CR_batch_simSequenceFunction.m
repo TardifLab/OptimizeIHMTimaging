@@ -1,4 +1,8 @@
 function [inputMag, B1_val] = CR_batch_simSequenceFunction(Params, varargin)
+%% A couple of edge cases:
+% Not enough time: b1 set to 0, inputMat set to 0;
+% Excitation pulses use all the SAR: b1 set to -1, inputMat set to 0;
+
 
 % 
 % Params.delta = ParameterSet(qi,1);
@@ -21,7 +25,12 @@ end
 
 B1rms_limit = 14e-6; % in Tesla
 
-Params.PulseOpt.bw = 0.3./Params.pulseDur; % override default Hann pulse shape.
+if (strcmp( Params.SatPulseShape, 'gaussian'))
+    Params.PulseOpt.bw = 2./Params.pulseDur;
+elseif( strcmp(Params.SatPulseShape ,'gausshann'))
+    Params.PulseOpt.bw = 0.3./Params.pulseDur; % override default Hann pulse shape.
+end
+
 
 %% Dummy echoes the way the TFL sequence adds them
 if Params.numExcitation == 1
@@ -87,7 +96,12 @@ end
             Params.b1 = Params.satRMS *1000000; % convert to microTesla
             B1_val = Params.b1;
 
-            [inputMag, ~, ~] = BlochSimFlashSequence_v2(Params); % MT-weighted signal simulation        
+            if (B1_val < 0) 
+                inputMag = 0;
+            else
+                [inputMag, ~, ~] = BlochSimFlashSequence_v2(Params); % MT-weighted signal simulation    
+            end
+                
             return;
         end
      end % End else for necessary Time
@@ -115,14 +129,14 @@ else
         Params.b1 = Params.satRMS *1000000; % convert to microTesla
         B1_val = Params.b1;
 
+        if (B1_val < 0) 
+                inputMag = 0;
+            else
+                [inputMag, ~, ~] = BlochSimFlashSequence_v2(Params); % MT-weighted signal simulation    
+        end
 
-        [inputMag, ~, ~] = BlochSimFlashSequence_v2(Params); % MT-weighted signal simulation
         return;
 
     end % end if necessaryTime
 end % end if Params.boosted
-                        
-                        
-                        
-                        
-                        
+                                          
