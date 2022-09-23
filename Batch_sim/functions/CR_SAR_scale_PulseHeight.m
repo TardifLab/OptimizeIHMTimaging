@@ -1,13 +1,3 @@
-function Params = CR_SAR_scale_PulseHeight(Params)
-% Uses SAR restrictions to give an estimate of the maximum pulse height 
-% that can be used for the saturation pulses
-% necessary parameters:
-% numSat = number of sat pulses
-% satRMS = root mean square of sat pulses (in Tesla)
-% tp_sat = time of sat pulse (in seconds)
-% numExc = number of excitation pulses
-% flip = flip angle of excitation pulses (in degrees) 
-% TR = time (in seconds)
 
 
 if ~isfield(Params,'B0') % if not defined, assume 3T
@@ -18,13 +8,6 @@ if ~isfield(Params, 'boosted')
     error ('Please specify if boosted sat scheme is used (enter Params.boosted = 0 or 1)')
 end
 
-% if Params.B0 == 7
-%     if strcmp(Params.TransmitCoil, 'STX')
-%         SAR_limit = 2.35; % Empirical value to match what I get at scanner
-%     end
-% else
-%     SAR_limit = 3; %(W/kg)
-% end
 
 SAR_limit = 3; %(W/kg)
     
@@ -38,17 +21,18 @@ w = 42.58e6 *Params.B0;
 % protocols based on longer vs shorter TRs
 
 if Params.B0 == 3
-    r = 0.1; % meters for human head
-    l = 0.256; % meters for human head
+    r = 0.071; % meters for human head
+    l = 0.57; % meters for human head
 
     % S/m from McCann et al 2019; 
     %conduc => % CSF = 1.71, GM is 0.466, WM is 0.21;
     if Params.boosted % modify for different definition of numSatPulse
-        % conduc = 0.957; % empirical value TR = 3;
-        % conduc = 0.81; % empirical value TR = 1.14
-        conduc = 0.079*Params.TR + 0.72; % line fit to the above
+        % conduc = 0.83; % empirical value TR = 3;
+        % conduc = 0.805; % empirical value TR = 1.14
+        conduc = 0.0134*Params.TR + 0.7897; % line fit to the above
     else
-        conduc = 1.76; % empirical value TR = 0.12
+        conduc = 0.805; % empirical value TR = 0.100
+        %conduc = 0.8; % empirical value TR = 0.12
     end
 elseif Params.B0 == 7
 
@@ -92,5 +76,4 @@ else
         Params.satRMS = sqrt((SAR_limit*Params.TR - J_exc)/(Params.numSatPulse*P_c*Params.pulseDur));
     end
 end
-
 
