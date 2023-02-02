@@ -1,4 +1,4 @@
 Additional fit that was done for the supplementary material. 
 Note: You will need to change the paths in the main script : 
-**GaussSearchFitParams_v1.m
+**GaussSearchFitParams_v1.m**
 to match your local paths
