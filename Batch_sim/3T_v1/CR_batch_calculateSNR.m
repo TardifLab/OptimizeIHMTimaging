@@ -125,7 +125,7 @@ else
     simResultsB = CR_add_ihMTR_SNR(simResultsB);
     disp('Finished Boosted MTR, moving to MTsat')
     
-    simResultsB = CR_add_ihMTsat_SNR_boost(simResultsB, boostParam);
+    simResultsB = CR_add_ihMTsat_SNR_boost(simResultsB, boostParam, DATADIR);
     
     save(strcat(DATADIR,'outputsBoost/simResults_3T_batch_boost_withCalc.mat'),'simResultsB' );
 end
