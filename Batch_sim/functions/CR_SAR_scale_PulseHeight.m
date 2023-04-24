@@ -1,3 +1,14 @@
+function Params = CR_SAR_scale_PulseHeight(Params, B1peak_limit)
+% Uses SAR restrictions to give an estimate of the maximum pulse height 
+% that can be used for the saturation pulses
+% necessary parameters:
+% numSat = number of sat pulses
+% satRMS = root mean square of sat pulses (in Tesla)
+% tp_sat = time of sat pulse (in seconds)
+% numExc = number of excitation pulses
+% flip = flip angle of excitation pulses (in degrees) 
+% TR = time (in seconds)
+% B1peak_limit in microTesla
 
 
 if ~isfield(Params,'B0') % if not defined, assume 3T
@@ -8,72 +19,81 @@ if ~isfield(Params, 'boosted')
     error ('Please specify if boosted sat scheme is used (enter Params.boosted = 0 or 1)')
 end
 
-
-SAR_limit = 3; %(W/kg)
-    
-%% Multiply all variables except for the B1 field
-% Using equation from Ibrahim, Tamer S. 2004. 
-% Specify variables
-w = 42.58e6 *Params.B0;
-
-% There is likely time involved in the SAR monitoring for heat diffusion. A
-% simplistic approach used here: two conductivity values to separate the
-% protocols based on longer vs shorter TRs
-
-if Params.B0 == 3
-    r = 0.071; % meters for human head
-    l = 0.57; % meters for human head
-
-    % S/m from McCann et al 2019; 
-    %conduc => % CSF = 1.71, GM is 0.466, WM is 0.21;
-    if Params.boosted % modify for different definition of numSatPulse
-        % conduc = 0.83; % empirical value TR = 3;
-        % conduc = 0.805; % empirical value TR = 1.14
-        conduc = 0.0134*Params.TR + 0.7897; % line fit to the above
-    else
-        conduc = 0.805; % empirical value TR = 0.100
-        %conduc = 0.8; % empirical value TR = 0.12
+if Params.B0 == 7
+    if strcmp(Params.TransmitCoil, 'STX')
+        SAR_limit = 3; % Empirical value to match what I get at scanner
     end
-elseif Params.B0 == 7
 
-    r = 0.066; % meters for human head
-    l = 0.22; % meters for human head
+    empFact = -1.35e-5*Params.TR + 1.21e-3; % Rough estimate
 
-    % From Van Lier et al 2014, the average conductivity at 7T was 
-    % 13 percent higher than at 3T, when looking at GM,WM and CSF
-    %conduc = 1.71*1.13;
-    conduc = 0.8; % empirically solved based on what I get at scanner.
-elseif Params.B0 == 1.5
-    r = 0.1; % meters for human head
-    l = 0.256; % meters for human head
-
-    % From Van Lier et al 2014, the average conductivity at 1.5T was 
-    % 10 percent lower than at 3T, when looking at GM,WM and CSF
-    conduc = 1.71*0.9;
+else
+    SAR_limit = 3; %(W/kg)
+    empFact = 1.44e-3; % 3T
 end
+    
+gam = 42.576e6;
+kg = 60; % reference weight
+w0 = gam *Params.B0;
 
-% calculate the power deposited
-P_c = pi*r^4 * l * w^2 *conduc;
 
 %% Power = J/s. Multiply by pulse time to find J of work done
 % For Excitation pulse
-% numberSatPulses *(powerCoefficient*B1field) * time pulse
-excB1 = (Params.flipAngle) / (360*42.58e6 * Params.WExcDur);
-J_exc = Params.numExcitation*(P_c * excB1^2)* Params.WExcDur;
+% (empiricalFactor*B1field^2) * numberPulses * time pulse
+excB1 = (Params.flipAngle) / (360* gam * Params.WExcDur);
+J_exc = (empFact * excB1^2 * w0^2)* (Params.numExcitation * Params.WExcDur); % Power (J/s) * time (s) = J
 
-%% Combine the work, divide by TR
-% Head SAR restriction is ~ 3 W/kg for head
-% Edge case that we use all the SAR up for excitation, check for negative
-checkNeg = (SAR_limit*Params.TR - J_exc);
+Jsat = SAR_limit*Params.TR*kg - J_exc; % J/(s*kg) *s*kg = J - J = J
 
-if checkNeg < 0
-    Params.satRMS = -1;
+if Jsat < 0
+    Params.satRMS = 0;
 else
+
     if Params.boosted % modify for different definition of numSatPulse
         SatPulseNumberTotal = Params.numSatPulse * Params.satTrainPerBoost;
-        Params.satRMS = sqrt((SAR_limit*Params.TR - J_exc)/ (SatPulseNumberTotal*P_c*Params.pulseDur));
     else
-        Params.satRMS = sqrt((SAR_limit*Params.TR - J_exc)/(Params.numSatPulse*P_c*Params.pulseDur));
+        SatPulseNumberTotal = Params.numSatPulse;
+    end
+    
+    % Power sat = Joules / time of sat
+    tSat = SatPulseNumberTotal*Params.pulseDur;
+    Psat = Jsat / tSat;
+    
+    % Reorganize the Power equation to solve for B1 
+    % B1 = sqrt(Psat/(epsilon*w0^2))
+    % OLD WAY Params.satRMS = sqrt(Psat/(empFact*w0^2));
+end
+
+%% From here, calculate the flip angle based on the pulse shape and power
+Psat = Psat/(empFact*w0^2); % rescale with empirical factor.
+
+% Compute a temporary pulse to get the B1 integral from shape and duration
+% Following Soustelle et al 2022, integral = p2, power = p2*B1peak^2
+% Solve for peak, then scale normalized B1 and get integral for flipangle
+
+if ~isfield(Params,'PulseOpt')
+    switch Params.PulseOpt                
+        % Special cases
+        case 'gausshann'
+            Params.PulseOpt.bw = 0.0002/Params.pulseDur; % override default Hann pulse shape.
+        otherwise
+            Params.PulseOpt = [];
     end
 end
 
+t = 0:Params.pulseDur/100:Params.pulseDur;
+tempPulse = GetPulse(100, Params.delta, Params.pulseDur, ...
+Params.SatPulseShape, Params.PulseOpt);
+
+rf = tempPulse.('b1')(t);
+p2 = trapz(t,rf.^2)/ Params.pulseDur; % See Soustelle et al 2022 for def.
+B1peak = sqrt( Psat/p2);
+
+if B1peak > B1peak_limit % conform to hardware constraint
+    B1peak = B1peak_limit;
+end
+
+Params.satFlipAngle = trapz( t, rf*B1peak)*gam * 360;
+Params.satB1peak = B1peak*1e6; % convert to microTesla
+
+
+% figure; plot(t, rf*B1peak*1e6)
