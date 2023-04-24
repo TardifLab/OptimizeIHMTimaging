@@ -1,4 +1,4 @@
-function [inputMag, B1_val] = CR_batch_simSequenceFunction(Params, varargin)
+function [inputMag, satFlipAngle] = CR_batch_simSequenceFunction(Params, varargin)
 %% A couple of edge cases:
 % Not enough time: b1 set to 0, inputMat set to 0;
 % Excitation pulses use all the SAR: b1 set to -1, inputMat set to 0;
@@ -23,14 +23,13 @@ for i = 1:2:length(varargin)
     end
 end
 
-B1rms_limit = 14e-6; % in Tesla
+B1peak_limit = 28e-6; % in Tesla
 
 if (strcmp( Params.SatPulseShape, 'gaussian'))
     Params.PulseOpt.bw = 2./Params.pulseDur;
 elseif( strcmp(Params.SatPulseShape ,'gausshann'))
     Params.PulseOpt.bw = 0.3./Params.pulseDur; % override default Hann pulse shape.
 end
-
 
 %% Dummy echoes the way the TFL sequence adds them
 if Params.numExcitation == 1
@@ -47,19 +46,17 @@ if ~isfield(Params,'ReferenceScan') % Assume Sat Pulses are played out, unless s
     Params.ReferenceScan = 0; 
 end
 
-
-
  %% If reference scan for MTR calc
  if Params.ReferenceScan % used for calculating MTR.
      necessTime = Params.numExcitation*(Params.echoSpacing); 
-     B1_val = 0; % no MT pulse
+     satFlipAngle = 0; % no MT pulse
      
       if necessTime > Params.TR
             inputMag = 0;           
             return;
       else
           Params.boosted = 0;
-          [inputMag, ~, ~] = BlochSimFlashSequence_v2(Params,'b1',0,'MTC',0); % reference signal simulation
+          [inputMag, ~, ~] = BlochSimFlashSequence_v2(Params,'satFlipAngle',0,'MTC',0); % reference signal simulation
       end
 
 
@@ -71,7 +68,7 @@ end
 
     if satTime > Params.TR_MT % if sat scheme doesn't fit, go to next value...
         inputMag = 0;
-        B1_val = 0;
+        satFlipAngle = 0;
         return;
     else
 
@@ -82,21 +79,16 @@ end
 
         if necessTime > Params.TR
             inputMag = 0;
-            B1_val = 0;
+            satFlipAngle = 0;
             return;
         else
 
             % Calculate B1rms
-            Params = CR_SAR_scale_PulseHeight(Params);
+            Params = CR_SAR_scale_PulseHeight(Params, B1peak_limit);
 
-            % check limit, reset if necessary
-            if Params.satRMS > B1rms_limit
-                Params.satRMS = B1rms_limit;                               
-            end
-            Params.b1 = Params.satRMS *1000000; % convert to microTesla
-            B1_val = Params.b1;
+            satFlipAngle = Params.satFlipAngle;
 
-            if (B1_val < 0) 
+            if (satFlipAngle < 0) 
                 inputMag = 0;
             else
                 [inputMag, ~, ~] = BlochSimFlashSequence_v2(Params); % MT-weighted signal simulation    
@@ -115,21 +107,16 @@ else
 
     if necessTime > Params.TR
         inputMag = 0;
-        B1_val = 0;
+        satFlipAngle = 0;
         return;
     else
 
         % Calculate B1rms
-        Params = CR_SAR_scale_PulseHeight(Params);
+        Params = CR_SAR_scale_PulseHeight(Params, B1peak_limit);
 
-        % check limit, reset if necessary
-        if Params.satRMS > B1rms_limit
-            Params.satRMS = B1rms_limit;                               
-        end
-        Params.b1 = Params.satRMS *1000000; % convert to microTesla
-        B1_val = Params.b1;
+        satFlipAngle = Params.satFlipAngle;
 
-        if (B1_val < 0) 
+        if (satFlipAngle < 0) 
                 inputMag = 0;
             else
                 [inputMag, ~, ~] = BlochSimFlashSequence_v2(Params); % MT-weighted signal simulation    
@@ -139,4 +126,4 @@ else
 
     end % end if necessaryTime
 end % end if Params.boosted
-                                          
+                        
