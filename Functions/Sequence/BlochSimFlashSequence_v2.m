@@ -36,10 +36,6 @@ if ~isfield(Params,'IncludeDipolar')
     Params.IncludeDipolar = 1; 
 end
 
-if ~isfield(Params,'CalcVector')
-    Params.CalcVector = 0;
-end
-
 
 % if ~isfield(Params,'kf')
 %     Params.kf = (Params.R*Params.M0b); 
@@ -113,8 +109,7 @@ if Params.MTC
     tSat = 0 : stepSize : Params.pulseDur;
 
     PulseDur = ceil(Params.pulseDur/stepSize); % Break down pulse into rectangles
-    %satPulse = MAMT_preparePulses2(Params); % Calculate time-varying pulse B1
-    alpha = Params.b1*(360*42.6*Params.pulseDur);
+    alpha = Params.satFlipAngle;
 
     if ~isfield(Params,'PulseOpt')
         Params.PulseOpt = [];
@@ -159,7 +154,7 @@ end
 
 
 %% Setup Matrices
-% Params.CalcVector = 0;
+Params.CalcVector = 0;
 
 M = zeros(5,loops*20);
 M(:,1) = M0;
@@ -245,7 +240,7 @@ for i = 1:loops
                     
                     if Params.CalcVector == 1 
                         M(:,idx) = mean(M_t,2); 
-                        time_vect(idx) = time_vect(idx-1) +  Params.pulseDur/PulseDur;
+                        time_vect(idx) = time_vect(idx-1) +  Params.pulseDur;
                         idx = idx +1;
                     end % For viewing; 
                 end    
@@ -386,6 +381,8 @@ end
 % plot(M_t(1,:),'-r','LineWidth',1)
 % hold on
 % plot(M_t(2,:),'--b')
+
+
 
 
 
