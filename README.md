@@ -68,7 +68,7 @@ Some previously generated files were too large for github. If you would like the
 
 **If used, please reference the following publication:**
 
-Rowley CD, Leppert IR, Campbell JSW, Pike GB, Tardif CL. Optimization of acquisition parameters for cortical inhomogeneous magnetization transfer (ihMT) imaging using a rapid gradient echo readout. Magnetic Resonance in Medicine. 2023 
+Rowley CD, Campbell JSW, Leppert IR, Nelson MC, Pike GB, Tardif CL. Optimization of acquisition parameters for cortical inhomogeneous magnetization transfer (ihMT) imaging using a rapid gradient echo readout. Magnetic Resonance in Medicine. 2023  
 https://onlinelibrary.wiley.com/doi/10.1002/mrm.29754
 
 **For additional help with this code, contact christopher.rowley@mcgill.ca**
