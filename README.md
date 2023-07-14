@@ -5,7 +5,7 @@
 ## Requirements:
 
 - Requires the qMRlab toolbox (http://qmrlab.org/) which can be downloaded here: https://github.com/qMRLab/qMRLab
-- Can be combined with other sequence simulation code for correcting your maps for B1+ inhomogeneity https://github.com/TardifLab/MTsatB1correction 
+- Can be combined with other sequence simulation code for correcting your maps for B1+ inhomogeneity https://github.com/TardifLab/MTsatB1correction (note, use the code here in /b1Correction , it follows the same framework, but with updated code)
 - Assumes an MP2RAGE is used for T1 mapping, and thus for the noise calculations. So we need the MP2RAGE code from: https://github.com/JosePMarques/MP2RAGE-related-scripts
 - Contains some misc code such as colormaps https://github.com/christopherrowley/NeuroImagingMatlab
 
