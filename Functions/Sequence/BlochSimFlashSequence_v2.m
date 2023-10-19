@@ -114,9 +114,9 @@ if Params.MTC
     if ~isfield(Params,'PulseOpt')
         Params.PulseOpt = [];
     end
-    if isempty(Params.PulseOpt)
-        disp('Using default sat pulse bandwidth, otherwise set Params.PulseOpt.bw to a value in Hz')
-    end
+    % if isempty(Params.PulseOpt)
+    %     disp('Using default sat pulse bandwidth, otherwise set Params.PulseOpt.bw to a value in Hz')
+    % end
     satPulse = GetPulse(alpha, Params.delta, Params.pulseDur, Params.SatPulseShape, Params.PulseOpt);
 
     E_rf = zeros(5,5,PulseDur);
