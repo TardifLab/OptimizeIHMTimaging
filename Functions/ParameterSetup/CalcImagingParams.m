@@ -26,14 +26,15 @@ if ~isfield(Params,'RFspoilingPhaseInc') % if not defined,assume spoiling in rea
     Params.RFspoilingPhaseInc = 50;  % in degrees 
 end
 
+if ~isfield(Params,'PerfectSpoiling') % if not defined,assume spoiling in readout
+    Params.PerfectSpoiling = true; % eliminate transverse, used for testing
+end
+
 if ~isfield(Params,'GradientSpoiling') % if not defined,assume spoiling in readout
     Params.GradientSpoiling = true; % binary
     Params.PerfectSpoiling = false; % eliminate transverse, used for testing
 end
 
-if ~isfield(Params,'PerfectSpoiling') % if not defined,assume spoiling in readout
-    Params.PerfectSpoiling = false; % eliminate transverse, used for testing
-end
 
 if ~isfield(Params,'GradientSpoilingStrength') % if not defined,assume spoiling in readout
     Params.GradientSpoilingStrength = 24; % mT/m

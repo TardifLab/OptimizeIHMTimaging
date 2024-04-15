@@ -37,17 +37,16 @@ if ~isfield(Params,'IncludeDipolar')
 end
 
 
-% if ~isfield(Params,'kf')
-%     Params.kf = (Params.R*Params.M0b); 
-% end
-% 
-% if ~isfield(Params,'kr')
-%     Params.kr = (Params.R*Params.M0a);
-% end
-Params.kf = (Params.R*Params.M0b); 
-Params.kr = (Params.R*Params.M0a);
+if ~isfield(Params,'kf')
+    Params.kf = (Params.R*Params.M0b); 
+end
 
-if isempty(Params.Ra) % allow you to specify either Ra or Raobs
+if ~isfield(Params,'kr')
+    Params.kr = (Params.R*Params.M0a);
+end
+
+
+if ~isfield(Params,'Ra') || isempty(Params.Ra) % allow you to specify either Ra or Raobs
     Params.Ra = Params.Raobs - ((Params.R * Params.M0b * (Params.R1b - Params.Raobs)) / (Params.R1b - Params.Raobs + Params.R));
     if isnan(Params.Ra)
         Params.Ra = 1;
