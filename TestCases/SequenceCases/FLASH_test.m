@@ -19,12 +19,10 @@ Params = DefaultCortexTissueParams(Params);
 Params = CalcImagingParams(Params);
 Params = CalcVariableImagingParams(Params);
 
+% %%  Reference method
+% REFERENCE_VALUE1 =  CR_FLASH_solver(Params.flipAngle, Params.TR, 1, Params.M0a, 1./Params.Raobs);
 
-
-%%  Reference method
-REFERENCE_VALUE1 =  CR_FLASH_solver(Params.flipAngle, Params.TR, 1, Params.M0a, 1./Params.Raobs);
-
-%% Method 1 - Simple Excitation and Relaxation
+%% Method 1 - Simple Excitation and Relaxation (z only)
 loops = 500;
 M_t2 = zeros(1,2*loops +1);
 M_t2(1) = 1;
@@ -50,9 +48,11 @@ REFERENCE_VALUE2 = M_t2(idx-1)*sin(Params.flipAngle *pi/180);
 Params.CalcVector = 1;
 
 tic
-[lfa0, M1, t1] = BlochSimFlashSequence_v2(Params, 'GradientSpoiling',1,'ModelSpinDiffusion', 0);
+[lfa0, M1, t1] = BlochSimFlashSequence_v2(Params, 'GradientSpoiling',1,...
+                                'ModelSpinDiffusion', 0);
 
-[lfa1, M2, t2] = BlochSimFlashSequence_v2(Params, 'GradientSpoiling',1,'ModelSpinDiffusion', 1);
+[lfa1, M2, t2] = BlochSimFlashSequence_v2(Params, 'GradientSpoiling',1,...
+                                'ModelSpinDiffusion', 1);
 
 [lfa2, M3, t3] = BlochSimFlashSequence_v2(Params, 'PerfectSpoiling',1);
 toc

@@ -53,6 +53,10 @@ if ~isfield(Params,'Ra') || isempty(Params.Ra) % allow you to specify either Ra 
     end
 end
 
+if ~isfield(Params,'CalcVector')
+    Params.CalcVector = 0;
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Build sequence, then convert to loop structure.
 % play sequence for 5 seconds, then fill sampling table.
@@ -153,8 +157,6 @@ end
 
 
 %% Setup Matrices
-Params.CalcVector = 0;
-
 M = zeros(5,loops*20);
 M(:,1) = M0;
 
