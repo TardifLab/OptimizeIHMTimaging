@@ -1,4 +1,4 @@
-function sig = CR_generate_BSF_scaling_v1( inputMag, Params, outputSamplingTable , gm_m, fft_gm_m)
+function sig = CR_generate_BSF_scaling_v1( inputMag, Params, outputSamplingTable , brain_m, fft_brain_m)
 
 % Over long excitation trains, you have a change in the magnetization.
 % if you have a map that is being calculated off of the first echo in the
@@ -20,11 +20,11 @@ outKspace_s = CR_interpolateMissingGrappaLines( outKspace_s);
 sim3d_m = repmat(outKspace_s, [1,1,Params.Slices]);
 
 %% Scale the k-space by brain weighting to get 'Brain-spread-function'
-bsf = sim3d_m .* fft_gm_m;
+bsf = sim3d_m .* fft_brain_m;
 
 b_v = abs(ifftn(ifftshift(bsf)));
 
-sig = mean( b_v( gm_m>0 ));
+sig = mean( b_v( brain_m>0 ));
 
 
 
